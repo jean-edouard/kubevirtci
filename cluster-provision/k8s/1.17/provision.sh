@@ -58,6 +58,19 @@ mkdir -p /etc/systemd/system/docker.service.d
 systemctl daemon-reload
 systemctl restart docker
 
+# Upgrade container-selinux
+yum -y groupinstall "Development tools"
+yum -y install selinux-policy-devel setools-console wget
+cd /tmp
+wget https://github.com/containers/container-selinux/archive/v2.129.0.tar.gz
+tar xvzf v2.129.0.tar.gz
+cd container-selinux-2.129.0/
+make
+cp container.pp.bz2 /usr/share/selinux/packages/container.pp.bz2
+semodule -i container.pp.bz2
+semodule -B
+cd -
+
 #TODO: el8 repo
 # Add Kubernetes repository.
 cat <<EOF >/etc/yum.repos.d/kubernetes.repo
