@@ -24,6 +24,40 @@ kubeadmn_patches_path="/provision/kubeadm-patches"
 # Need to have the latest kernel
 dnf update -y kernel
 
+# Compile and install the public NVIDIA drivers
+# Should work but don't include nvidia_vgpu_vfio
+# The installer for nvidia_vgpu_vfio is not public and will only work on systems that have a compatible GPU
+TARGET=`ls /lib/modules | sort -V | tail -1`
+dnf install -y make gcc kernel-devel-$TARGET elfutils-libelf-devel
+curl -o /tmp/nvidia.run "https://storage.googleapis.com/nvidia-drivers-us-public/GRID/GRID11.0/NVIDIA-Linux-x86_64-450.51.05-grid.run"
+chmod +x /tmp/nvidia.run
+/tmp/nvidia.run -s -k $TARGET --no-drm
+rm /tmp/nvidia.run
+dnf remove -y make gcc kernel-devel-$TARGET elfutils-libelf-devel
+dnf autoremove -y
+echo nvidia >> /etc/modules
+#echo nvidia_vgpu_vfio >> /etc/modules
+echo vfio_mdev >> /etc/modules
+
+# Install the rpm drivers, won't work becuase of static kernel version, despite uname hack
+#yum -y install binutils
+#curl -o /tmp/nvidia.rpm "http://download.eng.pek2.redhat.com/qa/rhts/lookaside/virt-test/driver-storage/nvidia/grid/GRID-11/GRID-11-0-GA/NVIDIA-vGPU-rhel-8.2-450.55.x86_64.rpm"
+#mv /bin/uname /bin/uname.real
+#cat > /bin/uname <<'EOF'
+##!/bin/bash
+#FROM=`/bin/uname.real -r`
+#TO=`ls /lib/modules | sort -V | tail -1`
+#echo "Replacing '$FROM' with '$TO'" >&2
+#/bin/uname.real $@ | sed "s/${FROM}/${TO}/"
+#EOF
+#chmod +x /bin/uname
+#rpm -ivh /tmp/nvidia.rpm
+#rm /bin/uname
+#mv /bin/uname.real /bin/uname
+#echo nvidia >> /etc/modules
+#echo nvidia_vgpu_vfio >> /etc/modules
+#echo vfio_mdev >> /etc/modules
+
 # Resize root partition
 dnf install -y cloud-utils-growpart
 if growpart /dev/vda 1; then
