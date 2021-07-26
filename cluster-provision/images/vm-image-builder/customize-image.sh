@@ -12,9 +12,10 @@ function cleanup() {
 }
 
 SOURCE_IMAGE_PATH=$1
-OS_VARIANT=$2
-CUSTOMIZE_IMAGE_PATH=$3
-CLOUD_CONFIG_PATH=$4
+SOURCE_IMAGE_COPY_PATH=$2
+OS_VARIANT=$3
+CUSTOMIZE_IMAGE_PATH=$4
+CLOUD_CONFIG_PATH=$5
 
 readonly DOMAIN_NAME="provision-vm"
 readonly CLOUD_INIT_ISO="cloudinit.iso"
@@ -32,6 +33,7 @@ virt-install \
   --vcpus 2 \
   --name $DOMAIN_NAME \
   --disk "${SOURCE_IMAGE_PATH}",device=disk \
+  --disk "${SOURCE_IMAGE_COPY_PATH}",device=disk \
   --disk "${CLOUD_INIT_ISO}",device=cdrom \
   --os-type Linux \
   --os-variant "${OS_VARIANT}" \

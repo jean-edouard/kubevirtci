@@ -34,14 +34,58 @@ write_files:
 
           [Install]
           WantedBy=cloud-init.service
+    - path: /tmp/fdisk_add_efi_partition
+      content: |
+          d
+          n
+
+
+
+          -204800
+          n
+
+
+
+
+          t
+
+          ef
+          wq
+    - path: /tmp/chroot.sh
+      permissions: '0755'
+      content: |
+          echo "/dev/vda2 /boot vfat defaults 1 2" >> /etc/fstab
+          dnf install -y kernel-modules-$(uname -r) qemu-guest-agent stress-ng dmidecode virt-what vm-dump-metrics shim grub2-efi
+          dnf clean all
+          ls /usr/lib/systemd/system/
+          ln -s /usr/lib/systemd/system/wait-for-cloud-init.service /etc/systemd/system/multi-user.target.wants/
+          ln -s /usr/lib/systemd/system/qemu-guest-agent.service /etc/systemd/system/multi-user.target.wants/
+          echo > /etc/hostname
+          sed -i /users-groups/d /etc/cloud/cloud.cfg
+          sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config
 runcmd:
-  - sudo systemctl daemon-reload
-  - sudo dnf install -y kernel-modules-$(uname -r) qemu-guest-agent stress-ng dmidecode virt-what vm-dump-metrics
-  - sudo dnf clean all
-  - sudo systemctl enable wait-for-cloud-init
-  - sudo systemctl enable qemu-guest-agent.service
-  - sudo hostnamectl set-hostname ""
-  - sudo hostnamectl set-hostname "" --transient
-  - sudo sed -i /users-groups/d /etc/cloud/cloud.cfg
-  - sudo sed -i 's/^SELINUX=.*/SELINUX=permissive/' /etc/selinux/config
+  - sudo dnf install -y dosfstools
+  - sudo mount
+  - sudo e2fsck -y /dev/vda1
+  - sudo resize2fs /dev/vda1 $(( $(blockdev --getsz /dev/vda1) - 204800 ))s
+  - sudo fdisk /dev/vda </tmp/fdisk_add_efi_partition
+  - sudo mkfs.vfat /dev/vda2
+  - sudo mount /dev/vda1 /mnt
+  - sudo mount /dev/vda2 /mnt/boot
+  - sudo mount -o bind /sys /mnt/sys
+  - sudo mount -o bind /proc /mnt/proc
+  - sudo mount -o bind /dev /mnt/dev
+  - sudo mount -t tmpfs tmpfs /mnt/run
+  - sudo rsync -a /boot/ /mnt/boot
+  - sudo mkdir -p /mnt/run/systemd/resolve
+  - sudo cp /etc/resolv.conf /mnt/run/systemd/resolve/stub-resolv.conf
+  - sudo cp /tmp/chroot.sh /mnt/chroot.sh
+  - sudo chroot /mnt /chroot.sh
+  - sudo rm /mnt/chroot.sh
+  - sudo umount /mnt/run
+  - sudo umount /mnt/dev
+  - sudo umount /mnt/proc
+  - sudo umount /mnt/sys
+  - sudo umount /mnt/boot
+  - sudo umount /mnt
   - sudo shutdown

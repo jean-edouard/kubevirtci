@@ -23,7 +23,7 @@ function customize_image() {
   cp "${source_image}" "${vm_image_copy}"
 
   # TODO: convert this script and its dependencies to container
-  ${CUSTOMIZE_IMAGE_SCRIPT} "${vm_image_copy}" "${os_variant}" "${customized_image}" "${cloud_config}"
+  ${CUSTOMIZE_IMAGE_SCRIPT} "${source_image}" "${vm_image_copy}" "${os_variant}" "${customized_image}" "${cloud_config}"
 
   # Backup no longer needed.
   rm -f "${vm_image_copy}"
@@ -53,7 +53,7 @@ pushd "${SCRIPT_PATH}"
   cleanup
   echo "Downloading the base image ..."
 
-   if ! [ -e "${VM_IMAGE}" ]; then
+  if ! [ -e "${VM_IMAGE}" ]; then
     # Download base VM image
     curl -L "${VM_IMAGE_URL}" -o "${VM_IMAGE}"
   fi
