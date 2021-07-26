@@ -34,9 +34,27 @@ write_files:
 
           [Install]
           WantedBy=cloud-init.service
+    - path: /tmp/fdisk_add_efi_partition
+      content: |
+          n
+
+
+
+
+          t
+
+          ef
+          wq
 runcmd:
+  - sudo fdisk /dev/vda </tmp/fdisk_add_efi_partition
+  - mkfs.fat -F32 /dev/vda2
+  - mount /dev/vda2 /mnt
+  - rsync -a /boot/ /mnt
+  - umount /mnt
+  - echo "/dev/vda2 /boot vfat defaults 1 2" >> /etc/fstab
+  - mount /boot
   - sudo systemctl daemon-reload
-  - sudo dnf install -y kernel-modules-$(uname -r) qemu-guest-agent stress-ng dmidecode virt-what vm-dump-metrics
+  - sudo dnf install -y kernel-modules-$(uname -r) qemu-guest-agent stress-ng dmidecode virt-what vm-dump-metrics shim grub2-efi
   - sudo dnf clean all
   - sudo systemctl enable wait-for-cloud-init
   - sudo systemctl enable qemu-guest-agent.service

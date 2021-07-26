@@ -53,9 +53,11 @@ pushd "${SCRIPT_PATH}"
   cleanup
   echo "Downloading the base image ..."
 
-   if ! [ -e "${VM_IMAGE}" ]; then
+  if ! [ -e "${VM_IMAGE}" ]; then
     # Download base VM image
     curl -L "${VM_IMAGE_URL}" -o "${VM_IMAGE}"
+    # Add 100MB to the image for a potential EFI partition
+    qemu-img resize "${VM_IMAGE}" +100M
   fi
 
   mkdir "${build_directory}"
