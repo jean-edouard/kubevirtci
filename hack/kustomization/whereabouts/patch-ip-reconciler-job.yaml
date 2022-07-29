@@ -1,14 +1,12 @@
-# TODO: remove after whereabouts contains https://github.com/k8snetworkplumbingwg/whereabouts/pull/150
-apiVersion: builtin
-kind: LabelTransformer
+apiVersion: batch/v1beta1
+kind: CronJob
 metadata:
-  name: patch-ip-reconciler-job
-labels:
-  app: whereabouts
-fieldSpecs:
-- path: spec/jobTemplate/spec/template/metadata/labels
-  create: true
-  kind: CronJob
-  metadata:
-    name: ip-reconciler
-
+  name: ip-reconciler
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: whereabouts
+              image: ghcr.io/k8snetworkplumbingwg/whereabouts:##VERSION##-amd64
