@@ -100,9 +100,15 @@ function _add_common_params() {
     fi
 
     if [ -n "${KUBEVIRTCI_PROVISION_CHECK}" ]; then
-        params=" --container-registry=quay.io --container-suffix=:latest $params"
+        params=" --container-suffix=:latest $params"
     elif [[ ${KUBEVIRT_SLIM} == "true" ]]; then
         params=" --slim $params"
+    fi
+
+    if [ -n "${KUBEVIRTCI_IMAGE_REPO}" ]; then
+	registry="$(dirname ${KUBEVIRTCI_IMAGE_REPO})"
+	org="$(basename ${KUBEVIRTCI_IMAGE_REPO})"
+	params=" --container-org=${org} --container-registry=${registry} $params"
     fi
 
     if [ $KUBEVIRT_WITH_ETC_IN_MEMORY == "true" ]; then

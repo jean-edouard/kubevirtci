@@ -26,8 +26,10 @@ if ${SLIM}; then
   SLIM_MODE="--slim"
 fi
 
+repo=${KUBEVIRTCI_IMAGE_REPO:-quay.io/kubevirtci}
+
 make -C ../gocli cli
-../gocli/build/cli provision ${provision_dir} --phases ${PHASES} ${SLIM_MODE}
+../gocli/build/cli provision ${provision_dir} --phases ${PHASES} --kubevirtci-repo ${repo} ${SLIM_MODE}
 
 if [[ $PHASES == $PHASES_DEFAULT ]] || [[ $CHECK_CLUSTER == true ]]; then
    if [[ $PHASES == "linux" ]]; then

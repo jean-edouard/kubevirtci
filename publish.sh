@@ -5,8 +5,8 @@ set -ex
 export KUBEVIRTCI_TAG=$(date +"%y%m%d%H%M")-$(git rev-parse --short HEAD)
 CLUSTERS="$(find cluster-provision/k8s/* -maxdepth 0 -type d -printf '%f\n')"
 
-TARGET_REPO="quay.io/kubevirtci"
-TARGET_KUBEVIRT_REPO="quay.io/kubevirt"
+TARGET_REPO="${KUBEVIRTCI_IMAGE_REPO:-quay.io/kubevirtci}"
+TARGET_KUBEVIRT_REPO="${KUBEVIRT_IMAGE_REPO:-quay.io/kubevirt}"
 TARGET_GIT_REMOTE="https://kubevirt-bot@github.com/kubevirt/kubevirtci.git"
 
 function build_gocli() {

@@ -23,7 +23,7 @@ function validate_single_stack_ipv6() {
 
 if [ -z "$KUBEVIRTCI_PATH" ]; then
     KUBEVIRTCI_PATH="$(
-        cd "$(dirname "$BASH_SOURCE[0]")/"
+        cd "$(dirname "${BASH_SOURCE[0]}")/"
         echo "$(pwd)/"
     )"
 fi

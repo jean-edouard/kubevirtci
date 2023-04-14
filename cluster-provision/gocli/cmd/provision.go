@@ -45,6 +45,7 @@ func NewProvisionCommand() *cobra.Command {
 	provision.Flags().String("container-suffix", "", "use additional suffix for the provisioned container image")
 	provision.Flags().String("phases", "linux,k8s", "phases to run, possible values: linux,k8s linux k8s")
 	provision.Flags().StringArray("additional-persistent-kernel-arguments", []string{}, "additional persistent kernel arguments applied after provision")
+	provision.Flags().String("kubevirtci-repo", "quay.io/kubevirtci", "the repository to use for the images")
 
 	return provision
 }
@@ -60,7 +61,11 @@ func provisionCluster(cmd *cobra.Command, args []string) (retErr error) {
 	if err != nil {
 		return err
 	}
-	base := fmt.Sprintf("quay.io/kubevirtci/%s", strings.TrimSpace(string(baseBytes)))
+	kubevirtciRepo, err := cmd.Flags().GetString("kubevirtci-repo")
+	if err != nil {
+		return err
+	}
+	base := fmt.Sprintf("%s/%s", kubevirtciRepo, strings.TrimSpace(string(baseBytes)))
 
 	containerSuffix, err := cmd.Flags().GetString("container-suffix")
 	if err != nil {
@@ -71,7 +76,7 @@ func provisionCluster(cmd *cobra.Command, args []string) (retErr error) {
 		name = fmt.Sprintf("%s-%s", name, containerSuffix)
 	}
 	prefix := fmt.Sprintf("k8s-%s-provision", name)
-	target := fmt.Sprintf("quay.io/kubevirtci/k8s-%s", name)
+	target := fmt.Sprintf("%s/k8s-%s", kubevirtciRepo, name)
 	scripts := filepath.Join(packagePath)
 
 	phases, err := cmd.Flags().GetString("phases")
